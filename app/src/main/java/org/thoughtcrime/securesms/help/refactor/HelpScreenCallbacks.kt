@@ -7,6 +7,8 @@ package org.thoughtcrime.securesms.help.refactor
 
 interface HelpScreenCallbacks {
   fun onNavigationClick() = Unit
+  fun onWhatIsDebugLogClick() = Unit
+  fun onFaqClick() = Unit
 
   object Empty : HelpScreenCallbacks
 }
