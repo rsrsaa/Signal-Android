@@ -35,6 +35,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -50,10 +51,10 @@ import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.withLink
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import org.signal.core.ui.compose.Buttons
+import org.signal.core.ui.compose.DayNightPreviews
 import org.signal.core.ui.compose.Previews
 import org.signal.core.ui.compose.Scaffolds
 import org.signal.core.ui.compose.SignalIcons
@@ -62,8 +63,9 @@ import org.thoughtcrime.securesms.components.emoji.EmojiImageView
 
 @Composable
 fun HelpScreen(
-  callbacks: HelpScreenCallbacks,
   state: HelpScreenState,
+  callbacks: HelpScreenCallbacks,
+  startCategoryIndex: Int = 0,
 ) {
   Scaffolds.Settings(
     title = stringResource(R.string.preferences__help),
@@ -72,6 +74,10 @@ fun HelpScreen(
   ) { paddingValues ->
 
     val categories = stringArrayResource(R.array.HelpFragment__categories_6).toList()
+
+    LaunchedEffect(startCategoryIndex) {
+      callbacks.onCategorySelected(startCategoryIndex)
+    }
 
     Column(
       modifier = Modifier
@@ -298,13 +304,13 @@ enum class Feeling(val emojiCode: String, val labelRes: Int) {
   ANGRY(emojiCode    = "\ud83d\ude20", labelRes = R.string.HelpFragment__emoji_1),
 }
 
-@Preview
+@DayNightPreviews
 @Composable
 private fun HelpScreenPreview() {
   Previews.Preview {
     HelpScreen(
-      callbacks = HelpScreenCallbacks.Empty,
       state = HelpScreenState(),
+      callbacks = HelpScreenCallbacks.Empty,
     )
   }
 }
