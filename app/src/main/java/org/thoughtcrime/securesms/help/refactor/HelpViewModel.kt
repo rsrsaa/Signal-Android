@@ -5,15 +5,25 @@
 
 package org.thoughtcrime.securesms.help.refactor
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.application
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import org.signal.core.util.ResourceUtil
+import org.thoughtcrime.securesms.R
+import org.thoughtcrime.securesms.logsubmit.SubmitDebugLogRepository
+import org.thoughtcrime.securesms.util.SupportEmailUtil
 
-class HelpViewModel : ViewModel() {
+class HelpViewModel(application: Application) : AndroidViewModel(application) {
 
   private val _state = MutableStateFlow(HelpScreenState())
   val state = _state.asStateFlow()
+
+  private val submitDebugLogRepository = SubmitDebugLogRepository()
 
   fun onProblemChanged(text: String) {
     _state.update { it.copy(problemText = text) }
@@ -34,6 +44,55 @@ class HelpViewModel : ViewModel() {
   }
 
   fun onNextClick() {
-    // TODO: implement
+    viewModelScope.launch {
+      if (_state.value.includeDebugLog) {
+        _state.update { it.copy(isSubmitting = true) }
+
+        submitDebugLogRepository.buildAndSubmitLog { optionalUrl ->
+          val debugLogUrl = if (optionalUrl.isPresent) optionalUrl.get()
+          else application.getString(R.string.HelpFragment__could_not_upload_logs)
+
+          dispatchEmail(debugLogUrl)
+
+          _state.update { it.copy(isSubmitting = false) }
+        }
+      } else {
+        dispatchEmail(debugLogUrl = null)
+      }
+    }
+  }
+
+  private fun dispatchEmail(debugLogUrl: String?) {
+    val context = application
+    val state = _state.value
+    val englishCategories: Array<String> = ResourceUtil.getEnglishResources(context)
+        .getStringArray(R.array.HelpFragment__categories_6)
+    val categoryLabel = englishCategories.getOrElse(state.categoryIndex) { "" }
+
+    val suffix = buildString {
+      if (debugLogUrl != null) {
+        append("\n")
+        append(context.getString(R.string.HelpFragment__debug_log))
+        append(" ")
+        append(debugLogUrl)
+      }
+      state.selectedFeeling?.let { feeling ->
+        append("\n\n")
+        append(feeling.emojiCode)
+        append("\n")
+        append(context.getString(feeling.labelRes))
+      }
+    }
+
+    val subject = context.getString(R.string.HelpFragment__signal_android_support_request)
+    val body    = SupportEmailUtil.generateSupportEmailBody(
+      context,
+      R.string.HelpFragment__signal_android_support_request,
+      " - $categoryLabel",
+      "${state.problemText}\n\n",
+      suffix,
+    )
+
+    // TODO: open email app
   }
 }

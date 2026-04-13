@@ -54,6 +54,7 @@ import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import org.signal.core.ui.compose.Buttons
+import org.signal.core.ui.compose.CircularProgressWrapper
 import org.signal.core.ui.compose.DayNightPreviews
 import org.signal.core.ui.compose.Previews
 import org.signal.core.ui.compose.Scaffolds
@@ -194,12 +195,16 @@ fun HelpScreen(
           },
         )
 
-        Buttons.LargeTonal(
-          modifier = Modifier.padding(end = 16.dp),
-          onClick = callbacks::onNextClick,
-          enabled = state.isFormValid,
+        CircularProgressWrapper(
+          isLoading = state.isSubmitting,
         ) {
-          Text(text = stringResource(R.string.HelpFragment__next))
+          Buttons.LargeTonal(
+            modifier = Modifier.padding(end = 16.dp),
+            onClick = callbacks::onNextClick,
+            enabled = state.isFormValid,
+          ) {
+            Text(stringResource(R.string.HelpFragment__next))
+          }
         }
       }
     }
@@ -275,12 +280,12 @@ private fun EmojiButton(
   }
 
   Box(
-    contentAlignment = Alignment.Center,
     modifier = Modifier
       .size(48.dp)
       .background(backgroundColor, shape = CircleShape)
       .padding(4.dp)
       .clickable(onClick = onClick),
+    contentAlignment = Alignment.Center,
   ) {
     AndroidView(
       factory = { context ->
