@@ -39,7 +39,6 @@ class HelpFragment : ComposeFragment() {
 
   companion object {
     const val START_CATEGORY_INDEX = "start_category_index"
-    // TODO: don't forget to switch to this constants instead of old once dev done
     const val PAYMENT_INDEX        = 6
     const val DONATION_INDEX       = 7
     const val REMOTE_BACKUPS_INDEX = 8
