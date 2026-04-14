@@ -43,6 +43,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.LinkAnnotation
@@ -55,25 +56,42 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import org.signal.core.ui.compose.Buttons
 import org.signal.core.ui.compose.CircularProgressWrapper
-import org.signal.core.ui.compose.DayNightPreviews
-import org.signal.core.ui.compose.Previews
 import org.signal.core.ui.compose.Scaffolds
 import org.signal.core.ui.compose.SignalIcons
 import org.thoughtcrime.securesms.R
 import org.thoughtcrime.securesms.components.emoji.EmojiImageView
+import org.thoughtcrime.securesms.util.CommunicationActions
+import org.thoughtcrime.securesms.util.SupportEmailUtil
 
 @Composable
 fun HelpScreen(
   state: HelpScreenState,
   callbacks: HelpScreenCallbacks,
   startCategoryIndex: Int = 0,
+  viewModel: HelpViewModel,
 ) {
+  val context = LocalContext.current
+
+  LaunchedEffect(Unit) {
+    viewModel.events.collect { event ->
+      when (event) {
+        is HelpScreenEvents.OpenEmail -> {
+          CommunicationActions.openEmail(
+            context,
+            SupportEmailUtil.getSupportEmailAddress(context),
+            event.subject,
+            event.body,
+          )
+        }
+      }
+    }
+  }
+
   Scaffolds.Settings(
     title = stringResource(R.string.preferences__help),
     onNavigationClick = callbacks::onNavigationClick,
     navigationIcon = SignalIcons.ArrowStart.imageVector,
   ) { paddingValues ->
-
     val categories = stringArrayResource(R.array.HelpFragment__categories_6).toList()
 
     LaunchedEffect(startCategoryIndex) {
@@ -309,13 +327,14 @@ enum class Feeling(val emojiCode: String, val labelRes: Int) {
   ANGRY(emojiCode    = "\ud83d\ude20", labelRes = R.string.HelpFragment__emoji_1),
 }
 
-@DayNightPreviews
-@Composable
-private fun HelpScreenPreview() {
-  Previews.Preview {
-    HelpScreen(
-      state = HelpScreenState(),
-      callbacks = HelpScreenCallbacks.Empty,
-    )
-  }
-}
+// TODO: fix preview
+//@DayNightPreviews
+//@Composable
+//private fun HelpScreenPreview() {
+//  Previews.Preview {
+//    HelpScreen(
+//      state = HelpScreenState(),
+//      callbacks = HelpScreenCallbacks.Empty,
+//    )
+//  }
+//}

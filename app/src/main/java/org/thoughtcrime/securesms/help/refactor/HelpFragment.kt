@@ -30,6 +30,7 @@ class HelpFragment : ComposeFragment() {
       state = state,
       callbacks = callbacks,
       startCategoryIndex = startCategoryIndex,
+      viewModel = viewModel,
     )
   }
 

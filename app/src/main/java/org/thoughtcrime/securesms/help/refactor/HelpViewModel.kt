@@ -9,8 +9,10 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.application
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.signal.core.util.ResourceUtil
@@ -22,6 +24,9 @@ class HelpViewModel(application: Application) : AndroidViewModel(application) {
 
   private val _state = MutableStateFlow(HelpScreenState())
   val state = _state.asStateFlow()
+
+  private val _events = Channel<HelpScreenEvents>(Channel.BUFFERED)
+  val events = _events.receiveAsFlow()
 
   private val submitDebugLogRepository = SubmitDebugLogRepository()
 
@@ -53,8 +58,6 @@ class HelpViewModel(application: Application) : AndroidViewModel(application) {
           else application.getString(R.string.HelpFragment__could_not_upload_logs)
 
           dispatchEmail(debugLogUrl)
-
-          _state.update { it.copy(isSubmitting = false) }
         }
       } else {
         dispatchEmail(debugLogUrl = null)
@@ -93,6 +96,9 @@ class HelpViewModel(application: Application) : AndroidViewModel(application) {
       suffix,
     )
 
-    // TODO: open email app
+    viewModelScope.launch {
+      _events.send(HelpScreenEvents.OpenEmail(subject = subject, body = body))
+      _state.update { it.copy(isSubmitting = false) }
+    }
   }
 }
