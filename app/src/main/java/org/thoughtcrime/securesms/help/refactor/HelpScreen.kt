@@ -54,8 +54,11 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.signal.core.ui.compose.Buttons
 import org.signal.core.ui.compose.CircularProgressWrapper
+import org.signal.core.ui.compose.DayNightPreviews
+import org.signal.core.ui.compose.Previews
 import org.signal.core.ui.compose.Scaffolds
 import org.signal.core.ui.compose.SignalIcons
 import org.thoughtcrime.securesms.R
@@ -65,12 +68,20 @@ import org.thoughtcrime.securesms.util.SupportEmailUtil
 
 @Composable
 fun HelpScreen(
-  state: HelpScreenState,
-  callbacks: HelpScreenCallbacks,
-  startCategoryIndex: Int = 0,
   viewModel: HelpViewModel,
+  startCategoryIndex: Int = 0,
+  onNavigationClick: () -> Unit,
+  onWhatIsDebugLogClick: () -> Unit,
+  onFaqClick: () -> Unit,
 ) {
   val context = LocalContext.current
+  val categories = stringArrayResource(R.array.HelpFragment__categories_6).toList()
+
+  val state by viewModel.state.collectAsStateWithLifecycle()
+
+  LaunchedEffect(startCategoryIndex) {
+    viewModel.onCategorySelected(startCategoryIndex)
+  }
 
   LaunchedEffect(Unit) {
     viewModel.events.collect { event ->
@@ -87,17 +98,38 @@ fun HelpScreen(
     }
   }
 
+  HelpScreenContent(
+    state = state,
+    categories = categories,
+    onNavigationClick = { onNavigationClick() },
+    onWhatIsDebugLogClick = { onWhatIsDebugLogClick() },
+    onFaqClick = { onFaqClick() },
+    onProblemTextChanged = viewModel::onProblemChanged,
+    onCategorySelected = viewModel::onCategorySelected,
+    onFeelingSelected = viewModel::onFeelingSelected,
+    onDebugLogsToggled = viewModel::onDebugLogsToggled,
+    onNextClick = viewModel::onNextClick,
+  )
+}
+
+@Composable
+private fun HelpScreenContent(
+  state: HelpScreenState,
+  categories: List<String>,
+  onNavigationClick: () -> Unit,
+  onWhatIsDebugLogClick: () -> Unit,
+  onFaqClick: () -> Unit,
+  onProblemTextChanged: (String) -> Unit,
+  onCategorySelected: (Int) -> Unit,
+  onFeelingSelected: (Feeling) -> Unit,
+  onDebugLogsToggled: (Boolean) -> Unit,
+  onNextClick: () -> Unit,
+) {
   Scaffolds.Settings(
     title = stringResource(R.string.preferences__help),
-    onNavigationClick = callbacks::onNavigationClick,
+    onNavigationClick = onNavigationClick,
     navigationIcon = SignalIcons.ArrowStart.imageVector,
   ) { paddingValues ->
-    val categories = stringArrayResource(R.array.HelpFragment__categories_6).toList()
-
-    LaunchedEffect(startCategoryIndex) {
-      callbacks.onCategorySelected(startCategoryIndex)
-    }
-
     Column(
       modifier = Modifier
         .fillMaxSize()
@@ -123,7 +155,7 @@ fun HelpScreen(
             .fillMaxWidth()
             .defaultMinSize(minHeight = 144.dp),
           value = state.problemText,
-          onValueChange = { callbacks.onProblemTextChanged(it) },
+          onValueChange = { onProblemTextChanged(it) },
           placeholder = {
             Text(text = stringResource(id = R.string.HelpFragment__tell_us_whats_going_on))
           },
@@ -145,7 +177,7 @@ fun HelpScreen(
         CategoryDropdown(
           categories = categories,
           selectedIndex = state.categoryIndex,
-          onCategorySelected = callbacks::onCategorySelected,
+          onCategorySelected = onCategorySelected,
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -160,7 +192,7 @@ fun HelpScreen(
 
         EmojiRatingRow(
           selectedFeeling = state.selectedFeeling,
-          onFeelingSelected = callbacks::onFeelingSelected,
+          onFeelingSelected = onFeelingSelected,
         )
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -171,14 +203,14 @@ fun HelpScreen(
         ) {
           Checkbox(
             checked = state.includeDebugLog,
-            onCheckedChange = { callbacks.onDebugLogsToggled(it) },
+            onCheckedChange = { onDebugLogsToggled(it) },
           )
           Text(
             text = stringResource(id = R.string.HelpFragment__include_debug_log),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
           )
-          TextButton(onClick = callbacks::onWhatIsDebugLogClick) {
+          TextButton(onClick = onWhatIsDebugLogClick) {
             Text(
               text = stringResource(id = R.string.HelpFragment__whats_this),
               color = MaterialTheme.colorScheme.primary,
@@ -202,9 +234,7 @@ fun HelpScreen(
             withLink(
               link = LinkAnnotation.Clickable(
                 "view-faq",
-                linkInteractionListener = {
-                  callbacks.onFaqClick()
-                },
+                linkInteractionListener = { onFaqClick() },
                 styles = TextLinkStyles(style = SpanStyle(color = MaterialTheme.colorScheme.primary))
               )
             ) {
@@ -218,7 +248,7 @@ fun HelpScreen(
         ) {
           Buttons.LargeTonal(
             modifier = Modifier.padding(end = 16.dp),
-            onClick = callbacks::onNextClick,
+            onClick = onNextClick,
             enabled = state.isFormValid,
           ) {
             Text(stringResource(R.string.HelpFragment__next))
@@ -327,14 +357,21 @@ enum class Feeling(val emojiCode: String, val labelRes: Int) {
   ANGRY(emojiCode    = "\ud83d\ude20", labelRes = R.string.HelpFragment__emoji_1),
 }
 
-// TODO: fix preview
-//@DayNightPreviews
-//@Composable
-//private fun HelpScreenPreview() {
-//  Previews.Preview {
-//    HelpScreen(
-//      state = HelpScreenState(),
-//      callbacks = HelpScreenCallbacks.Empty,
-//    )
-//  }
-//}
+@DayNightPreviews
+@Composable
+private fun HelpScreenPreview() {
+  Previews.Preview {
+    HelpScreenContent(
+      state = HelpScreenState(),
+      categories = emptyList(),
+      onNavigationClick = {},
+      onWhatIsDebugLogClick = {},
+      onFaqClick = {},
+      onProblemTextChanged = {},
+      onCategorySelected = {},
+      onFeelingSelected = {},
+      onDebugLogsToggled = {},
+      onNextClick = {},
+    )
+  }
+}
