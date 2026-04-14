@@ -32,6 +32,8 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -79,6 +81,8 @@ fun HelpScreen(
 
   val state by viewModel.state.collectAsStateWithLifecycle()
 
+  val snackbarHostState = remember { SnackbarHostState() }
+
   LaunchedEffect(startCategoryIndex) {
     viewModel.onCategorySelected(startCategoryIndex)
   }
@@ -94,6 +98,9 @@ fun HelpScreen(
             event.body,
           )
         }
+        is HelpScreenEvents.ShowSnackbar -> {
+          snackbarHostState.showSnackbar(context.getString(event.messageRes))
+        }
       }
     }
   }
@@ -101,6 +108,7 @@ fun HelpScreen(
   HelpScreenContent(
     state = state,
     categories = categories,
+    snackbarHostState = snackbarHostState,
     onNavigationClick = { onNavigationClick() },
     onWhatIsDebugLogClick = { onWhatIsDebugLogClick() },
     onFaqClick = { onFaqClick() },
@@ -116,6 +124,7 @@ fun HelpScreen(
 private fun HelpScreenContent(
   state: HelpScreenState,
   categories: List<String>,
+  snackbarHostState: SnackbarHostState,
   onNavigationClick: () -> Unit,
   onWhatIsDebugLogClick: () -> Unit,
   onFaqClick: () -> Unit,
@@ -126,6 +135,7 @@ private fun HelpScreenContent(
   onNextClick: () -> Unit,
 ) {
   Scaffolds.Settings(
+    snackbarHost = { SnackbarHost(snackbarHostState) },
     title = stringResource(R.string.preferences__help),
     onNavigationClick = onNavigationClick,
     navigationIcon = SignalIcons.ArrowStart.imageVector,
@@ -249,7 +259,7 @@ private fun HelpScreenContent(
           Buttons.LargeTonal(
             modifier = Modifier.padding(end = 16.dp),
             onClick = onNextClick,
-            enabled = state.isFormValid,
+            enabled = !state.isSubmitting,
           ) {
             Text(stringResource(R.string.HelpFragment__next))
           }
@@ -364,6 +374,7 @@ private fun HelpScreenPreview() {
     HelpScreenContent(
       state = HelpScreenState(),
       categories = emptyList(),
+      snackbarHostState = SnackbarHostState(),
       onNavigationClick = {},
       onWhatIsDebugLogClick = {},
       onFaqClick = {},

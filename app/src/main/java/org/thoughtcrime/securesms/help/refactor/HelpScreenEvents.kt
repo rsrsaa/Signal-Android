@@ -7,4 +7,5 @@ package org.thoughtcrime.securesms.help.refactor
 
 sealed interface HelpScreenEvents {
   data class OpenEmail(val subject: String, val body: String) : HelpScreenEvents
+  data class ShowSnackbar(val messageRes: Int) : HelpScreenEvents
 }

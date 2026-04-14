@@ -49,6 +49,13 @@ class HelpViewModel(application: Application) : AndroidViewModel(application) {
   }
 
   fun onNextClick() {
+    if (!state.value.isFormValid) {
+      viewModelScope.launch {
+        _events.send(HelpScreenEvents.ShowSnackbar(R.string.HelpFragment__please_be_as_descriptive_as_possible))
+      }
+      return
+    }
+
     viewModelScope.launch {
       if (_state.value.includeDebugLog) {
         _state.update { it.copy(isSubmitting = true) }
