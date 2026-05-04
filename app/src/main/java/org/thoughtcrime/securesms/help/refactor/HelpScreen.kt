@@ -9,6 +9,7 @@ import android.widget.ImageView
 import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -346,10 +347,12 @@ private fun EmojiButton(
   isSelected: Boolean,
   onClick: () -> Unit,
 ) {
+  val isDark = isSystemInDarkTheme()
+
   val backgroundColor = if (isSelected) {
-    Color(0xFF2C6BED)
+    if (isDark) Color(0xFF6191f3) else Color(0xFF2C6BED)
   } else {
-    Color(0xFFE9E9E9)
+    if (isDark) Color(0xFF3b3b3b) else Color(0xFFE9E9E9)
   }
 
   Box(
