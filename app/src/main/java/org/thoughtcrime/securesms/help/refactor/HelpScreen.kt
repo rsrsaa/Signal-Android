@@ -6,6 +6,7 @@
 package org.thoughtcrime.securesms.help.refactor
 
 import android.widget.ImageView
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -36,6 +37,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -55,6 +57,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.signal.core.ui.compose.Buttons
 import org.signal.core.ui.compose.CircularProgressWrapper
@@ -76,6 +79,7 @@ fun HelpScreen(
   onWhatIsDebugLogClick: () -> Unit,
   onFaqClick: () -> Unit,
 ) {
+  val activity = LocalActivity.current
   val context = LocalContext.current
   val categories = stringArrayResource(R.array.HelpFragment__categories_6).toList()
 
@@ -101,6 +105,17 @@ fun HelpScreen(
         is HelpScreenEvents.ShowSnackbar -> {
           snackbarHostState.showSnackbar(context.getString(event.messageRes))
         }
+      }
+    }
+  }
+
+  DisposableEffect(Unit) {
+    activity?.window?.let {
+      WindowCompat.setDecorFitsSystemWindows(it, false)
+    }
+    onDispose {
+      activity?.window?.let {
+        WindowCompat.setDecorFitsSystemWindows(it, true)
       }
     }
   }
