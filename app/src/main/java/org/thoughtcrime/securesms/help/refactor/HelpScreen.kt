@@ -23,7 +23,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Checkbox
@@ -33,10 +32,10 @@ import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -54,6 +53,7 @@ import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
@@ -176,18 +176,20 @@ private fun HelpScreenContent(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        OutlinedTextField(
-          modifier = Modifier
-            .fillMaxWidth()
-            .defaultMinSize(minHeight = 144.dp),
+        TextField(
           value = state.problemText,
           onValueChange = { onProblemTextChanged(it) },
           placeholder = {
             Text(text = stringResource(id = R.string.HelpFragment__tell_us_whats_going_on))
           },
-          keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+          keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.Text,
+            capitalization = KeyboardCapitalization.Sentences,
+          ),
           maxLines = Int.MAX_VALUE,
-          shape = RoundedCornerShape(8.dp),
+          modifier = Modifier
+            .fillMaxWidth()
+            .defaultMinSize(minHeight = 144.dp),
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -298,7 +300,7 @@ private fun CategoryDropdown(
     expanded = expanded,
     onExpandedChange = { expanded = !expanded },
   ) {
-    OutlinedTextField(
+    TextField(
       modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, true),
       value = categories.getOrElse(selectedIndex) { "" },
       onValueChange = {},
